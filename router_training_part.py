@@ -13,15 +13,12 @@ from transformers import LlamaTokenizer, AutoTokenizer, LlamaForCausalLM, Genera
 from dataloader import generate_data_LLM_gsm, generate_data_LLM_code, generate_data_router_gsm, generate_data_router_code
 from federatedscope.llm.dataset.llm_dataset import DefaultToken
 
-
-# hyper-parameters
 BATCH_SIZE = 128
 LR = 0.001
 GAMMA = 0.90
 # EPISILO = 0.9
 MEMORY_CAPACITY = 2000
-# shared_MEMORY_CAPACITY = 500
-shared_MEMORY_CAPACITY = 0
+shared_MEMORY_CAPACITY = 500
 Q_NETWORK_ITERATION = 100
 directory = './save' + '/'
 mode = 'train'
@@ -62,8 +59,7 @@ def get_tokenizer(model_name, cache_dir, tok_len=128, pkg='huggingface_llm'):
     elif pkg == 'modelscope_llm':
         from modelscope import AutoTokenizer, LlamaTokenizer
 
-    # huggingface_hub.login("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")
-    # token = "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"
+
     tokenizer = AutoTokenizer.from_pretrained(
         model_name,
         # use_auth_token=token,
@@ -119,13 +115,9 @@ class Environment():
         model.set_adapter("weighted_lora")
 
         if flag == True:
-            print(f'------------------data_number---------------------')
-            print(data_number)
-
+            
             input_ids, labels, attention_mask = generate_data_LLM_gsm(data_number) 
         else:
-            print(f'------------------data_number---------------------')
-            print(data_number)
 
             input_ids, labels, attention_mask = generate_data_LLM_code(data_number) 
         
@@ -134,15 +126,14 @@ class Environment():
                         attention_mask=attention_mask)
         loss = outputs.loss.detach()
         ppl = np.exp(loss.cpu())
-        print(f'------------------ppl---------------------')
-        print(ppl)
+
 
         if flag == True:
-            reward = -loss * 100  # score from LLM
+            reward = -loss * 100  
         else:
-            reward = -loss * 100  # score from LLM
+            reward = -loss * 100  
 
-        next_state = 0  # one step DRL, have no next state
+        next_state = 0  
         model.delete_adapter("weighted_lora")
 
         return next_state, reward, ppl
@@ -237,7 +228,7 @@ class DQN():
 
 
         q_eval = self.eval_net(batch_state).gather(1, batch_action)
-        q_target = batch_reward  # 因为是一步强化学习，所以q_target就是reward
+        q_target = batch_reward 
         loss = self.loss_func(q_eval, q_target)
 
         self.optimizer.zero_grad()
